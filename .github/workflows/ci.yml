@@ -1,0 +1,47 @@
+name: Build & Test
+on: push
+
+jobs:
+  yocto_versions:
+    strategy:
+      matrix:
+        # Yocto versions (using branch convention)
+        # https://wiki.yoctoproject.org/wiki/Releases
+        branch: [
+          # "origin/mickledore",
+          # "origin/langdale",
+          # "origin/kirkstone",
+          # "origin/honister",
+          # "origin/hardknott",
+          # "origin/gatesgarth",
+          "origin/dunfell",
+        ]
+    env:
+      BRANCH: ${{ matrix.branch }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'checkout'
+        uses: actions/checkout@v3
+
+      - name: 'retrieve poky'
+        run: |
+          git clone --depth 1 -b ${BRANCH} git://git.yoctoproject.org/poky
+          cd poky && git rev-parse --short HEAD > revision.txt 
+          
+          source oe-init-build-env
+          mkdir -p "/opt/yocto/cache/sstate"
+          mkdir -p "/opt/yocto/cache/sstate"
+          echo 'SSTATE_DIR="/opt/yocto/cache/sstate"' >> conf/local.conf
+          echo 'DL_DIR="/opt/yocto/cache/downloads"' >> conf/local.conf
+
+      - name: cache downloaded src
+        id: cache-build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /opt/yocto/cache/sstate
+            /opt/yocto/cache/downloads
+          key: ${{ runner.os }}-${{ matrix.branch }}-${{ hashFiles('**/revision.txt') }}
+
+      - name: 'build core-image-minimal image'
+        run: bitbake core-image-minimal
