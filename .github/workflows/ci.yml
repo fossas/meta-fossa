@@ -45,4 +45,4 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.branch }}-${{ hashFiles('**/revision.txt') }}
 
       - name: 'build core-image-minimal image'
-        run: bitbake core-image-minimal
+        run: cd yocto && source oe-init-build-env && bitbake core-image-minimal
