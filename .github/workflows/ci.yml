@@ -14,10 +14,11 @@ jobs:
           # "origin/honister",
           # "origin/hardknott",
           # "origin/gatesgarth",
-          "origin/dunfell",
+          "dunfell",
         ]
     env:
       BRANCH: ${{ matrix.branch }}
+
     runs-on: ubuntu-latest
     steps:
       - name: 'checkout'
