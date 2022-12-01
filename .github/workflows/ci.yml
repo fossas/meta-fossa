@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'install missing hosttools'
-        run: apt-get -y install chrpath diffstat
+        run: sudo apt-get -y install chrpath diffstat
 
       - name: 'checkout'
         uses: actions/checkout@v3
