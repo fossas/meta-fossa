@@ -1,9 +1,6 @@
 {
     "referenced-dependencies": [
       {
-        "type": "gem",
-        "name": "iron"
-      }, {
         "type": "pypi",
         "name": "Django",
         "version": "2.1.7"

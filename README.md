@@ -1,3 +1,4 @@
+![FOSSA](https://raw.githubusercontent.com/fossas/fossa-cli/master/docs/assets/header.png)
 ## `meta-fossa`
 
 `meta-fossa`, analyzes and reports runtime packages of yocto image build to FOSSA.

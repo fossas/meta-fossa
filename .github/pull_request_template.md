@@ -39,4 +39,3 @@ _Example:_
 
 - [ ] I added tests for this PR's change (or explained in the PR description why tests don't make sense).
 - [ ] If this PR introduced a user-visible change, I have updated relevant documentation.
-- [ ] If this change is externally visible, I updated `Changelog.md`. If this PR did not mark a release, I added my changes into an `# Unreleased` section at the top.
