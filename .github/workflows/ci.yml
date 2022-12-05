@@ -1,0 +1,66 @@
+name: CI
+on: push
+
+jobs:
+  yocto-check-layer:
+    name: "Check Layer"
+    strategy:
+      matrix:
+        # Yocto versions (using branch convention)
+        # https://wiki.yoctoproject.org/wiki/Releases
+        branch: [
+          "mickledore",
+          "langdale",
+          "kirkstone",
+          "honister",
+          "hardknott",
+          "gatesgarth",
+          "dunfell",
+        ]
+    env:
+      YOCTO_RELEASE: ${{ matrix.branch }}
+    
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install Host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install gawk wget git diffstat unzip texinfo gcc \
+          build-essential chrpath socat cpio python3 python3-pip python3-pexpect \
+          xz-utils debianutils iputils-ping python3-git python3-jinja2 \
+          libegl1-mesa libsdl1.2-dev pylint3 xterm python3-subunit \
+          mesa-common-dev zstd liblz4-tool
+          
+      - name: Check out meta-fossa
+        uses: actions/checkout@v3
+        
+      - name: Run Yocto check layer script
+        run: |
+          cd ${RUNNER_TEMP}
+          git clone --depth 1 --branch ${YOCTO_RELEASE} https://git.yoctoproject.org/git/poky 
+          source ./poky/oe-init-build-env build
+          yocto-check-layer --with-software-layer-signature-check --debug "$GITHUB_WORKSPACE"
+
+  link-check:
+    name: link-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check Markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: "yes"
+          config-file: ".markdown-link-check.json"
+
+      - name: Disallow empty Markdown links
+        run: |
+          ! grep ']()' **/*.md
+
+  common-verbiage-check:
+    name: "Check for correct spelling of FOSSA"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Check for incorrect FOSSA wording"
+        run: |
+          ! grep 'Fossa ' **/*.md
