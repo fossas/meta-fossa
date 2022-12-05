@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Important:** Bug reports should be directed to (FOSSA support portal)[https://support.fossa.com/hc/en-us] for faster response and prioritization. Bug reports may still be created here but they may not get immediate attention and may be closed in favor of internally tracked tickets.
+**Important:** Bug reports should be directed to [FOSSA support portal](https://support.fossa.com/hc/en-us) for faster response and prioritization. Bug reports may still be created here but they may not get immediate attention and may be closed in favor of internally tracked tickets.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
