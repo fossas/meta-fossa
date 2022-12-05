@@ -58,4 +58,4 @@ repository. Contributions are welcome!
 
 ## Support
 
-You can request from FOSSA's support team at https://support.fossa.com. 
+You can request from FOSSA's support team at https://support.fossa.com/hc/en-us 

@@ -211,9 +211,8 @@ does so by looking at installed_packages on rootfs.
 
 3. How can I report defect?
 
-You can report defect or feature request to FOSSA team at https://support.fossa.com. We prefer
-you use fossa's support portal instead of github Issues, as our support team can rapidly address
-question and bugs.
+You can report defect or feature request to FOSSA team at https://support.fossa.com/hc/en-us 
+
 
 4. How does it differ from `create-spdx` class?
 
