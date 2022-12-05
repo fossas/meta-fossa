@@ -9,12 +9,12 @@ jobs:
         # Yocto versions (using branch convention)
         # https://wiki.yoctoproject.org/wiki/Releases
         branch: [
-          "mickledore",
-          "langdale",
-          "kirkstone",
-          "honister",
-          "hardknott",
-          "gatesgarth",
+          # "mickledore",
+          # "langdale",
+          # "kirkstone",
+          # "honister",
+          # "hardknott",
+          # "gatesgarth",
           "dunfell",
         ]
     env:
