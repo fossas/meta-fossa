@@ -212,13 +212,12 @@ You can report defect or feature request to the FOSSA team at https://support.fo
 
 ### How does it differ from the `create-spdx` class?
 
-`create-spdx` class was introduced in Yocto with version: `, which
-does not work well for the current LTS release: dunfell.
+`create-spdx` class was introduced in Yocto with version: `3.4 (honister)`, which
+does not work well for the current LTS release: `dunfell`.
 
-Further, `meta-fossa` is explicitly designed to work with FOSSA
-supporting license correction workflows, org/project-wide reporting,
-and notification etc.
-
+Further, `meta-fossa` is explicitly designed to work with FOSSA,
+which brings support for license correction workflows, org and project-wide reporting,
+notifications, and more.
 ### How do I apply a correction to incorrect license or package information?
 
 You can do so via FOSSA WEB UI. Please refer to the documentation at: https://docs.fossa.com/docs/triaging-issues#remediating-issues

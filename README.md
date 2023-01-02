@@ -57,6 +57,8 @@ Please refer to our [detailed guide](./GUIDE.md) for more information.
 Please submit any patches against the `meta-fossa` layer to this
 repository. Contributions are welcome!
 
+This layer maintainer can be contacted at support@fossa.com, or via github issues.
+
 ## Support
 
-You can request from FOSSA's support team at https://support.fossa.com/hc/en-us 
+You can request from FOSSA's support team at https://support.fossa.com/hc/en-us
