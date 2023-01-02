@@ -1,0 +1,22 @@
+# Learn more: https://github.com/fossas/fossa-cli/blob/master/docs/references/files/fossa-yml.md#fossayml
+
+version: 3
+
+server: https://app.fossa.com
+apiKey: a1b2c3
+
+project:
+  id: github.com/fossas/fossa-cli
+  name: fossa-cli
+  team: cli-team
+  policy: custom-cli-policy
+  link: fossa.com
+  url: github.com/fossas/fossa-cli
+  jiraProjectKey: jira-key
+  releaseGroup:
+    name: release-group-name
+    release: 123-release-candidate
+
+revision:
+  commit: "12345"
+  branch: master
