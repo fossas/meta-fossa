@@ -1,56 +1,74 @@
 ![FOSSA](https://raw.githubusercontent.com/fossas/fossa-cli/master/docs/assets/header.png)
 ## `meta-fossa`
 
-`meta-fossa`, analyzes and reports runtime packages of yocto image build to FOSSA.
+`meta-fossa` analyzes and reports runtime packages of yocto image build to FOSSA.
 
-## Table of Contents
+## Quickstart
 
-1. Adding the meta-fossa layer to your build
-2. Patches
-3. Support
+_For more details and configuration options, please refer to our [integration guide](./GUIDE.md)!_
 
-## Adding the meta-fossa layer to your build
+```shell
+# Check out the FOSSA layer.
+; git clone git@github.com:fossas/meta-fossa.git
 
+# Check out Yocto, if it isn't already.
+; git clone git://git.yoctoproject.org/poky.git -b dunfell
 
-1. Get `meta-fossa` layer
+# Activate yocto build environment
+# This quickstart assumes the build env then moves CWD to `./build`.
+; cd poky && source oe-init-build-env
 
-```bash
-git clone https://github.com/fossas/meta-fossa.git
+# Add meta-fossa layer
+; echo 'BBLAYERS += "${TOPDIR}/../../meta-fossa"' >> conf/local.conf
+
+# Inherit the fossa layer
+; echo 'INHERIT += "fossa"' >> conf/local.conf
+
+# Specify FOSSA API key
+# Get one in your FOSSA account settings: https://app.fossa.com/account/settings/integrations/api_tokens
+; echo 'FOSSA_API_KEY = "<VALID-FOSSA-API-KEY>"' >> conf/local.conf
+
+# Build your image!
+; bitbake core-image-minimal
 ```
 
-2. Add `meta-fossa` layer
-
-```bash
-cd poky && source poky/oe-init-build-env
-bitbake add-layer ../.
-
-# If you have persisted `meta-fossa` at some other location,
-# bitbake add-layer <PATH-TO-META-FOSSA>
+The build logs report the URL at which the FOSSA project can be viewed:
+```shell
+[ INFO] Using project name: `core-image-minimal`
+[ INFO] Using revision: `qemux86-64-20230103233003`
+[ INFO] Using branch: `dunfell`
+[ INFO] ============================================================
+[ INFO]
+[ INFO]     View FOSSA Report:
+[ INFO]     https://app.fossa.com/projects/<YOUR-PROJECT-URL-HERE>
+[ INFO]
+[ INFO] ============================================================
 ```
 
-3. Inherit `fossa` into your image
+If there are issues, the image build is prevented with an error:
+```shell
+[ERROR] ----------
+  An issue occurred
 
-```conf
-INHERIT += "fossa"
+  >>> Relevant errors
+
+    Error
+
+      The scan has revealed issues. Number of issues found: 19
+
+      Traceback:
+        (none)
+
+NOTE: Tasks Summary: Attempted 3385 tasks of which 3142 didn't need to be rerun and 1 failed.
+
+Summary: 1 task failed:
+  <PATH-TO-REPO>/meta/recipes-core/images/core-image-minimal.bb:do_fossa_test
+Summary: There was 1 WARNING message shown.
+Summary: There was 1 ERROR message shown, returning a non-zero exit code.
 ```
 
-4. Set `FOSSA_API_KEY`
-
-```conf
-FOSSA_API_KEY = "<VALID-FOSSA-API-KEY>"
-```
-
-Refer to [API Token](https://docs.fossa.com/docs/api-reference#api-tokens) documentation for more details.
-
-5. Build your image! (done)
-
-```bash
-bitbake <IMAGE>
-
-# example: bitbake core-image-minimal
-```
-
-Please refer to our [detailed guide](./GUIDE.md) for more information.
+This test functionality can be disabled if desired; see the [integration guide](./GUIDE.md#perform-only-analysis-disregard-fossa-test)
+for more details.
 
 ## Patches
 
