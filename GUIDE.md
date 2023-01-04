@@ -1,27 +1,36 @@
 # Integration Guide
 
-## Quick Guide
+## Explanation
+
+The `meta-fossa` layer for Yocto integrates FOSSA CLI as a build step
+inside the Yocto build system.
+
+The `meta-fossa` layer does not actually alter the build,
+but does need to be run as part of the Yocto build process
+so that FOSSA can query Yocto for dependency and project information.
+
+## Integration Steps
+
+1. Clone Yocto (if not already cloned) and `meta-fossa`:
 
 ```bash
 git clone git://git.yoctoproject.org/poky.git -b dunfell
 git clone https://github.com/fossas/meta-fossa.git
+```
 
-# Activate yocto build environment
-cd poky && source poky/oe-init-build-env
+2. Add `meta-fossa` to `build/conf/local.conf` by appending the following lines:
 
-# Add meta-fossa layer in conf/local.conf
-BBLAYERS += "${TOPDIR}/../meta-fossa"
-
-# INHERIT fossa in conf/local.conf
+```bash
+BBLAYERS += "<PATH-TO-META-FOSSA>"
 INHERIT += "fossa"
-
-# Specify FOSSA_API_KEY in conf/local.conf
 FOSSA_API_KEY = "<VALID-FOSSA-API-KEY>"
 ```
 
-When you build your image, fossa will analyze and test your build.
+3. Run the build:
 
 ```bash
+cd poky
+source oe-init-build-env
 bitbake core-image-minimal
 ```
 
@@ -29,9 +38,9 @@ bitbake core-image-minimal
 
 `meta-fossa` currently supports the following strategies:
 
-| Strategy    | License            | Description        | Homepage           | Authors | Excludes unused packages | Vulnerability |
-| ----------- | ------------------ | ------------------ | ------------------ | ------- | ------------------------ | ------------- |
-| custom-deps | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :x:     | :heavy_check_mark:       | :x:           |
+| Strategy      | License            | Description        | Homepage           | Authors | Excludes unused packages | Vulnerability |
+|---------------|--------------------|--------------------|--------------------|---------|--------------------------|---------------|
+| `custom-deps` | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x:     | :white_check_mark:       | :x:           |
 
 More strategies are currently in active development.
 
@@ -50,44 +59,60 @@ By default, FOSSA classifies this build as the following project and revision:
 - Project (in FOSSA): `${IMAGE_BASENAME}`
 - Project Revision (in FOSSA): `${MACHINE}${IMAGE_VERSION_SUFFIX}`
 
-The default project name, and project revision can be customized by overriding the `fossa analyze` and `fossa test` commands. Please refer to the Options section for more details.
+The project name and project revision can be customized by overriding the `fossa analyze` and `fossa test` commands.
+Please refer to [Options](#options) for more details.
 
 ## Options
 
-| Variable                         | Value                       | Description                                                                         |
-| -------------------------------- | --------------------------- | ----------------------------------------------------------------------------------- |
-| FOSSA_API_KEY                    | `API-KEY`                   | (Required) Your FOSSA API KEY.                                                      |
-| FOSSA_ENABLED                    | `1`                         | (Optional) FOSSA is enabled. This is the default behaviour.                         |
-| FOSSA_ENABLED                    | `0`                         | (Optional) FOSSA is disabled. No analysis or test will run.                         |
-| FOSSA_ANALYZE_ONLY               | `1`                         | (Optional) No test will run, but the analysis will be updated in FOSSA.             |
-| FOSSA_ANALYZE_ONLY               | `0`                         | (Optional) Fossa test will be performed. This is the default behaviour.             |
-| FOSSA_INIT_DEPS_JSON             | `PATH-TO-FOSSA-DEPS-JSON`   | (Optional) Path to `fossa-deps.json`, which should be used in analysis.             |
-| FOSSA_CONFIG_FILE                | `PATH-TO-FOSSA-YML`         | (Optional) Path to `fossa.yml`, which to use during analysis and test.              |
-| FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS | `SPACE-SEPARATED-PKGNAMES`  | (Optional) Packages to exclude from final analysis. Comparison is case-insensitive. |
-| FOSSA_RAW_ANALYZE_CMD            | `ARGS` (e.g. `analyze ...`) | (Optional) Invoke `fossa-cli` with provided cmd args, during the analysis step.     |
-| FOSSA_RAW_TEST_CMD               | `ARGS` (e.g. `test ...`)    | (Optional) Invoke `fossa-cli` with provided cmd args during the test step.          |
+These options are configured by adding the variable to `build/conf/local.conf`.
+
+| Variable                         | Description                                                                                                                                       | Required           | Default                                                                                         |
+|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------|
+| FOSSA_API_KEY                    | The FOSSA API KEY.                                                                                                                                | :white_check_mark: | None                                                                                            |
+| FOSSA_ENABLED                    | Whether to run FOSSA. Set to `1` to run FOSSA.                                                                                                    | :x:                | `1`                                                                                             |
+| FOSSA_ANALYZE_ONLY               | Whether to skip testing the project for issues. Set to `1` to skip testing.                                                                       | :x:                | `0`                                                                                             |
+| FOSSA_INIT_DEPS_JSON             | Path to a custom `fossa-deps.json` to be read during analysis ([reference](#manually-include-some-dependencies-in-the-analysis)).                 | :x:                | None                                                                                            |
+| FOSSA_CONFIG_FILE                | Path to `fossa.yml` ([reference](https://github.com/fossas/fossa-cli/blob/master/docs/references/files/fossa-yml.md)).                            | :x:                | None                                                                                            |
+| FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS | Packages to exclude from final analysis ([reference](#exclude-dependencies-from-the-analysis))                                                    | :x:                | None                                                                                            |
+| FOSSA_RAW_ANALYZE_CMD            | Invoke `fossa-cli` with this argument string during the analysis step ([reference](#specify-custom-project-name-and-project-revision-for-fossa)). | :x:                | `analyze --fossa-api-key <API_KEY> -p ${IMAGE_BASENAME} -r "${MACHINE}${IMAGE_VERSION_SUFFIX}"` |
+| FOSSA_RAW_TEST_CMD               | Invoke `fossa-cli` with this argument string during the test step ([reference](#specify-custom-project-name-and-project-revision-for-fossa)).     | :x:                | `test --fossa-api-key <API_KEY> -p ${IMAGE_BASENAME} -r "${MACHINE}${IMAGE_VERSION_SUFFIX}"`    |
 
 ### Specify custom project name and project revision for FOSSA
 
-We can override invocation `analyze` and `test` commands like the following:
+Override invocation of `analyze` and `test` commands like the following:
 
 ```conf
-FOSSA_RAW_ANALYZE_CMD = "analyze -p myProject -r myRevision --fossa-api-key myApiKey"
-FOSSA_RAW_TEST_CMD = "test -p myProject -r myRevision --fossa-api-key myApiKey"
+FOSSA_RAW_ANALYZE_CMD = "analyze -p <PROJECT> -r <REVISION> --fossa-api-key <KEY>"
+FOSSA_RAW_TEST_CMD = "test -p <PROJECT> -r <REVISION> --fossa-api-key <KEY>"
 ```
 
-When you do use `FOSSA_RAW_ANALYZE_CMD` and `FOSSA_RAW_TEST_CMD`, you will also need
-to provide `FOSSA_API_KEY` and the relevant config file manually in the command.
+When these options are used, they must include the following data:
+
+- The FOSSA API key, via `--fossa-api-key <KEY>`.
+- The project name, via `--project <PROJECT>` or `-p <PROJECT>`.
+- The project revision, via `--revision <REVISION>` or `-r <REVISION>`.
+- The path to `fossa.yml`, if one is used, via `--config <PATH>` or `-c <PATH>`.
+
+Typically `meta-fossa` provides all of these arguments as required,
+but it does not do so if `FOSSA_RAW_ANALYZE_CMD` or `FOSSA_RAW_TEST_CMD` are used.
+
+If one command is customized, it is highly recommended to customize both;
+many options (and especially `--fossa-api-key`, `--project`, and `--revision`) should match between the commands.
+
+For more information on available options, see the following documentation:
+
+- [Documentation: `fossa analyze`](https://github.com/fossas/fossa-cli/blob/master/docs/references/subcommands/analyze.md)
+- [Documentation: `fossa test`](https://github.com/fossas/fossa-cli/blob/master/docs/references/subcommands/test.md)
 
 ### Manually include some dependencies in the analysis
 
-Sometimes you may have a scenario where you want to include additional
-dependencies in the analysis. We can do this via [fossa-deps.json](https://github.com/fossas/fossa-cli/blob/master/docs/features/manual-dependencies.md#manually-specifying-dependencies) file.
+There are scenarios in which it is desired to include additional
+dependencies in the analysis. This is supported with a [fossa-deps.json](https://github.com/fossas/fossa-cli/blob/master/docs/features/manual-dependencies.md#manually-specifying-dependencies)
+file.
 
-For example, we can create the following `fossa-deps-manual.json` at some
-path, e.g. `/home/user/example/fossa-deps-manual.json`.
+For example, assuming the following file at `/home/user/example/fossa-deps-manual.json`:
 
-```JSON
+```json
 {
   "referenced-dependencies": [
     {
@@ -103,39 +128,45 @@ path, e.g. `/home/user/example/fossa-deps-manual.json`.
 }
 ```
 
-Now, when we set this fossa-deps path to `FOSSA_INIT_DEPS_JSON`, fossa will include
-`iron` and `Django` dependencies in the final analysis.
+This path is then configured in `build/conf/local.conf`:
 
 ```conf
 FOSSA_INIT_DEPS_JSON = "/home/user/example/fossa-deps-manual.json"
 ```
 
+This results in the dependencies `iron` and `Django` being reported for the project,
+along with any other dependencies detected during the `meta-fossa` layer.
+
 ### Exclude dependencies from the analysis
 
-If for some reason, you want to exclude a specific package from the analysis,
-and inclusion, you can use `FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS`.
+There are scenarios in which it is desired to omit reporting specific packages.
+This is supported via the `FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS` option.
 
-For example, to exclude `bash` and `curl` from the analysis:
+For example, to exclude `bash` and `curl` from the analysis,
+this option is configured in `build/conf/local.conf`:
 
 ```conf
 FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS = "bash curl"
 ```
 
-`meta-fossa` performs a case-insensitive match between the installed package and
-package from `FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS`. The package
-will be excluded from the analysis if there is a match.
+This option is parsed as a list of space separated package names.
+Any detected package that matches an entry in this option, _ignoring case_,
+is omitted from the dependencies reported to FOSSA.
 
 ### Perform only analysis (disregard fossa test)
 
-Sometimes, you may want only to perform analysis and not
-let your build FAIL if there are licensing issues.
+Some teams may not wish to block builds on FOSSA test results,
+either permanently or temporarily.
+This is supported via the `FOSSA_ANALYZE_ONLY` option.
 
-You can do this so by setting `FOSSA_ANALYZE_ONLY` to `1`. Now,
-fossa will perform the `fossa analyze` command but will skip the `fossa test`.
+This option is configured in `build/conf/local.conf`:
 
 ```conf
 FOSSA_ANALYZE_ONLY = "1"
 ```
+
+When set to `1`, the `meta-fossa` layer does not block the build on the
+results of the FOSSA analysis.
 
 ## Troubleshoot
 
@@ -204,7 +235,7 @@ workflows, as well as issues workflows, work seamlessly.
 ### How does FOSSA detect dependencies?
 
 FOSSA only detects runtime dependencies of your yocto image build. It
-does so by looking at installed_packages on rootfs.
+does so by looking at `installed_packages` on rootfs.
 
 ### How can I report the defect?
 
@@ -212,12 +243,13 @@ You can report defect or feature request to the FOSSA team at https://support.fo
 
 ### How does it differ from the `create-spdx` class?
 
-`create-spdx` class was introduced in Yocto with version: `3.4 (honister)`, which
-does not work well for the current LTS release: `dunfell`.
+The `create-spdx` class was introduced in Yocto with version `3.4 (honister)`, which
+does not work well for the current LTS release `dunfell`.
 
 Further, `meta-fossa` is explicitly designed to work with FOSSA,
 which brings support for license correction workflows, org and project-wide reporting,
 notifications, and more.
+
 ### How do I apply a correction to incorrect license or package information?
 
 You can do so via FOSSA WEB UI. Please refer to the documentation at: https://docs.fossa.com/docs/triaging-issues#remediating-issues
