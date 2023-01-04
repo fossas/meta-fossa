@@ -62,10 +62,13 @@ If there are issues, the image build is prevented with an error:
 NOTE: Tasks Summary: Attempted 3385 tasks of which 3142 didn't need to be rerun and 1 failed.
 
 Summary: 1 task failed:
-  /home/jess/projects/poky/meta/recipes-core/images/core-image-minimal.bb:do_fossa_test
+  <PATH-TO-REPO>/meta/recipes-core/images/core-image-minimal.bb:do_fossa_test
 Summary: There was 1 WARNING message shown.
 Summary: There was 1 ERROR message shown, returning a non-zero exit code.
 ```
+
+This test functionality can be disabled if desired; see the [integration guide](./GUIDE.md#perform-only-analysis-disregard-fossa-test)
+for more details.
 
 ## Patches
 
