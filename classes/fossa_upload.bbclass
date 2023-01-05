@@ -1,10 +1,18 @@
+# This class is not explicitly included by the user; instead it is included
+# by the `fossa.bbclass` adjacent to this class.
+
 inherit fossa_utils
 
+# This hooks `do_fossa_analyze` into the overall Yocto build cycle,
+# running it right before the actual image is built
+# but after all the artifacts to do the build are prepared.
 addtask do_fossa_analyze before do_build after do_rootfs
 do_fossa_analyze[doc] = "Analyze via fossa-cli"
 do_fossa_analyze[nostamp] = "1"
 do_fossa_analyze[depends] = "fossa-cli:do_populate_sysroot"
 
+# Add `do_fossa_test` into the overall build cycle
+# right after `do_fossa_analyze`.
 addtask do_fossa_test before do_build after do_fossa_analyze
 do_fossa_test[doc] = "Test via fossa-cli"
 do_fossa_test[nostamp] = "1"

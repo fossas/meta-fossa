@@ -129,5 +129,5 @@ python do_fossa() {
     bb.debug(1, "Wrote fossa-deps at: {fossa_deps_path}")
 }
 
-# Inlcude fossa_upload from this entrypoint
+# Users only add this class to their build; implicitly add the `fossa_upload` class as well.
 IMAGE_CLASSES_append = " fossa_upload"
