@@ -43,6 +43,14 @@ def is_fossa_test_enabled(d):
 
     return False
 
+def is_fossa_license_scan_enabled(d):
+    """True if FOSSA_LICENSE_SCAN"""
+
+    if d.getVar("FOSSA_LICENSE_SCAN") == "1":
+        return True
+
+    return False
+
 
 def has_fossa_yml_file(d):
     """True, if FOSSA_CONFIG_FILE exist and is readable."""

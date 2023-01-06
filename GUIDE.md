@@ -69,11 +69,12 @@ These options are configured by adding the variable to `build/conf/local.conf`.
 | Variable                         | Description                                                                                                                                       | Required           | Default                                                                                         |
 |----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------|
 | FOSSA_API_KEY                    | The FOSSA API KEY.                                                                                                                                | :white_check_mark: | None                                                                                            |
-| FOSSA_ENABLED                    | Whether to run FOSSA. Set to `1` to run FOSSA.                                                                                                    | :x:                | `1`                                                                                             |
-| FOSSA_TEST_ENABLED               | Whether to test the project for issues. Set to `0` to skip testing.                                                                       | :x:                | `1`                                                                                             |
+| FOSSA_ENABLED                    | Whether to run FOSSA.                                                                                                                             | :x:                | `1`                                                                                             |
+| FOSSA_TEST_ENABLED               | Whether to test the project for issues.                                                                                                           | :x:                | `1`                                                                                             |
+| FOSSA_LICENSE_SCAN               | Whether to have FOSSA perform its own license scan of the dependencies ([reference](#perform-license-scan)).                                      | :x:                | `0`                                                                                             |
 | FOSSA_INIT_DEPS_JSON             | Path to a custom `fossa-deps.json` to be read during analysis ([reference](#manually-include-some-dependencies-in-the-analysis)).                 | :x:                | None                                                                                            |
 | FOSSA_CONFIG_FILE                | Path to `fossa.yml` ([reference](https://github.com/fossas/fossa-cli/blob/master/docs/references/files/fossa-yml.md)).                            | :x:                | None                                                                                            |
-| FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS | Packages to exclude from final analysis ([reference](#exclude-dependencies-from-the-analysis))                                                    | :x:                | None                                                                                            |
+| FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS | Packages to exclude from final analysis ([reference](#exclude-dependencies-from-the-analysis)).                                                   | :x:                | None                                                                                            |
 | FOSSA_RAW_ANALYZE_CMD            | Invoke `fossa-cli` with this argument string during the analysis step ([reference](#specify-custom-project-name-and-project-revision-for-fossa)). | :x:                | `analyze --fossa-api-key <API_KEY> -p ${IMAGE_BASENAME} -r "${MACHINE}${IMAGE_VERSION_SUFFIX}"` |
 | FOSSA_RAW_TEST_CMD               | Invoke `fossa-cli` with this argument string during the test step ([reference](#specify-custom-project-name-and-project-revision-for-fossa)).     | :x:                | `test --fossa-api-key <API_KEY> -p ${IMAGE_BASENAME} -r "${MACHINE}${IMAGE_VERSION_SUFFIX}"`    |
 
@@ -172,6 +173,31 @@ FOSSA_TEST_ENABLED = "0"
 
 When set to `0`, the `meta-fossa` layer does not block the build on the
 results of the FOSSA analysis.
+
+### Perform license scan
+
+By default, `fossa` relies on the licenses provided in the build recipes when reporting dependencies.
+However, this relies on the entity creating the recipe to accurately report the license
+of the code built by the recipe. This is not always reliable.
+
+In order to handle this case better, FOSSA can perform its own license scanning of dependencies
+instead of relying on the license reported by the recipe.
+
+This option is configured in `build/conf/local.conf`:
+
+```conf
+FOSSA_LICENSE_SCAN = "1"
+```
+
+When set to `1`, the `meta-fossa` layer performs its own license scan on recipe source code
+instead of relying on the license reported in the recipe.
+
+Any patches are applied before inspecting the source for license data.
+No source code is uploaded to the FOSSA servers.
+
+Internally, FOSSA treats the source code referenced in the recipe
+as "vendored dependencies"; for more information see the
+[vendored dependencies feature documentation](https://github.com/fossas/fossa-cli/blob/master/docs/features/vendored-dependencies.md).
 
 ## Troubleshoot
 
