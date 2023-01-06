@@ -70,7 +70,7 @@ These options are configured by adding the variable to `build/conf/local.conf`.
 |----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-------------------------------------------------------------------------------------------------|
 | FOSSA_API_KEY                    | The FOSSA API KEY.                                                                                                                                | :white_check_mark: | None                                                                                            |
 | FOSSA_ENABLED                    | Whether to run FOSSA. Set to `1` to run FOSSA.                                                                                                    | :x:                | `1`                                                                                             |
-| FOSSA_ANALYZE_ONLY               | Whether to skip testing the project for issues. Set to `1` to skip testing.                                                                       | :x:                | `0`                                                                                             |
+| FOSSA_TEST_ENABLED               | Whether to test the project for issues. Set to `0` to skip testing.                                                                       | :x:                | `1`                                                                                             |
 | FOSSA_INIT_DEPS_JSON             | Path to a custom `fossa-deps.json` to be read during analysis ([reference](#manually-include-some-dependencies-in-the-analysis)).                 | :x:                | None                                                                                            |
 | FOSSA_CONFIG_FILE                | Path to `fossa.yml` ([reference](https://github.com/fossas/fossa-cli/blob/master/docs/references/files/fossa-yml.md)).                            | :x:                | None                                                                                            |
 | FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS | Packages to exclude from final analysis ([reference](#exclude-dependencies-from-the-analysis))                                                    | :x:                | None                                                                                            |
@@ -155,17 +155,22 @@ is omitted from the dependencies reported to FOSSA.
 
 ### Perform only analysis (disregard fossa test)
 
+`fossa test` blocks the build if the licenses for third party dependencies
+are incompatible with the policy set for this project in FOSSA.
+
+For example, if the policy says "do not allow GPL code",
+and dependencies contain GPL code, `fossa test` blocks the build.
+
 Some teams may not wish to block builds on FOSSA test results,
-either permanently or temporarily.
-This is supported via the `FOSSA_ANALYZE_ONLY` option.
+either permanently or temporarily. This is supported via the `FOSSA_TEST_ENABLED` option.
 
 This option is configured in `build/conf/local.conf`:
 
 ```conf
-FOSSA_ANALYZE_ONLY = "1"
+FOSSA_TEST_ENABLED = "0"
 ```
 
-When set to `1`, the `meta-fossa` layer does not block the build on the
+When set to `0`, the `meta-fossa` layer does not block the build on the
 results of the FOSSA analysis.
 
 ## Troubleshoot

@@ -40,8 +40,8 @@ python do_fossa_test() {
         bb.debug(1, "Since FOSSA_ENABLED is 0, skipping: fossa test")
         return 
 
-    if is_fossa_analyze_only(d):
-        bb.debug(1, "Since FOSSA_ANALYZE_ONLY is 1, skipping: fossa test")
+    if not is_fossa_test_enabled(d):
+        bb.debug(1, "Since FOSSA_TEST_ENABLED is 0, skipping: fossa test")
         return
 
     run_fossa_cli(d, mk_fossa_cmd(d, 'test'))

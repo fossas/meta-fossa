@@ -5,7 +5,7 @@ def report_fossa_vars(d):
     vars_list = [
         "FOSSA_ENABLED",
         "FOSSA_API_KEY",
-        "FOSSA_ANALYZE_ONLY",
+        "FOSSA_TEST_ENABLED",
         "FOSSA_DEBUG",
         "FOSSA_OUTPUT",
         "FOSSA_INIT_DEPS_JSON",
@@ -35,10 +35,10 @@ def is_fossa_enabled(d):
     return True
 
 
-def is_fossa_analyze_only(d):
-    """True, if FOSSA_ANALYZE_ONLY or FOSSA_OUTPUT is enabled"""
+def is_fossa_test_enabled(d):
+    """True if FOSSA_TEST_ENABLED"""
 
-    if d.getVar("FOSSA_ANALYZE_ONLY") == "1":
+    if d.getVar("FOSSA_TEST_ENABLED") == "1":
         return True
 
     return False
