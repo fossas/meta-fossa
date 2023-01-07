@@ -31,8 +31,6 @@ python do_fossa_archive() {
     metadata = pkg_metadata(d)
     name = metadata['name']
 
-    src_dir = d.getVar('S')
-    
     # Unfortunately it is time consuming and a bit wasteful to copy the sources like this,
     # but referencing the original source isn't possible because by the time `do_fossa_analyze` runs
     # the original source dirs are gone.

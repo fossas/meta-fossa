@@ -423,7 +423,7 @@ def mk_fossa_cmd(d, subcmd):
             bb.debug(1, "using, raw analyze command provided: {rawcmd_analyze}")
             return rawcmd_analyze
 
-        analyze_cmd = ["analyze", "--output", "--debug", "-p", f"{project}", "-r", f"{revision}"]
+        analyze_cmd = ["analyze", "-p", f"{project}", "-r", f"{revision}"]
 
         if has_fossa_yml:
             analyze_cmd.append("-c")
@@ -435,7 +435,7 @@ def mk_fossa_cmd(d, subcmd):
 
         if is_fossa_debug_enabled:
             analyze_cmd.append('--debug')
-            
+
         if is_fossa_output_enabled:
             analyze_cmd.append('--output')
 
