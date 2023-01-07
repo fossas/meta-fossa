@@ -4,9 +4,44 @@ FOSSA_METADATA_RECIPES ??= "${TMPDIR}/fossa_metadata/recipes"
 FOSSA_METADATA_PATCHED_SRC ??= "${TMPDIR}/fossa_metadata/src"
 FOSSA_STAGING_DIR ??= "${TMPDIR}/fossa_metadata/staging"
 
+addtask do_fossa_archive after do_packagedata before do_rm_work
+do_fossa_archive[doc] = "Copies patched source code to a destination for license scanning"
+do_fossa_archive[rdeptask] += "do_unpack"
+do_fossa_archive[rdeptask] += "do_packagedata"
+do_fossa_archive[rdeptask] += "do_patch"
+
+# This task runs after the `do_patch` task.
+#
+# The `do_patch` task is executed for each package in the build; in this way
+# `do_fossa_archive` is able to save the package information and source code 
+# for every package that goes into the build.
+#
+# The temporary files containing this metadata are then combined into a
+# `fossa-deps` file by the `do_fossa` task. The source is then scanned
+# by the `do_fossa_analyze` task.
+python do_fossa_archive() {
+    if not is_fossa_enabled(d):
+        bb.debug(1, "Since FOSSA_ENABLED is 0, skipping: archive patched source")
+        return
+
+    if not is_fossa_license_scan_enabled(d):
+        bb.debug(1, "Since FOSSA_LICENSE_SCAN is 0, skipping: archive patched source")
+        return
+
+    metadata = pkg_metadata(d)
+    name = metadata['name']
+
+    src_dir = d.getVar('S')
+    
+    # Unfortunately it is time consuming and a bit wasteful to copy the sources like this,
+    # but referencing the original source isn't possible because by the time `do_fossa_analyze` runs
+    # the original source dirs are gone.
+    write_metadata(d, metadata)
+    copy_src(d, metadata)
+}
+
 addtask do_fossa_pkg after do_packagedata before do_rm_work
 do_fossa_pkg[doc] = "Stores recipe metadata for future analysis"
-do_fossa_pkg[nostamp] = "1"
 do_fossa_pkg[rdeptask] += "do_unpack"
 do_fossa_pkg[rdeptask] += "do_packagedata"
 
@@ -14,88 +49,24 @@ do_fossa_pkg[rdeptask] += "do_packagedata"
 #
 # The `do_packagedata` task is executed for each package in the build; in this way
 # `do_fossa_pkg` is able to save the package information for every package
-# that goes into the build into the temporary holding location.
+# that goes into the build.
 #
 # These temporary files are then combined into a `fossa-deps` file
 # by the `do_fossa` task.
 python do_fossa_pkg() {
     if not is_fossa_enabled(d):
         bb.debug(1, "Since FOSSA_ENABLED is 0, skipping: creating recipe parsing")
-        return 
+        return
 
-    import json
+    if is_fossa_license_scan_enabled(d):
+        bb.debug(1, "Since FOSSA_LICENSE_SCAN is 1, skipping: creating recipe parsing")
+        return
 
-    # Recipe name or a resulting package name
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-PN
-    name = d.getVar('PN')
-    
-    # Version of the recipe. This is by default, version of the released package (PKGV).
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-PV
-    version = d.getVar('PV')
-    
-    # Version of the package. This is by default, same as recipe version (PV).
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-PKGV
-    pkg_version = d.getVar('PKGV')
+    metadata = pkg_metadata(d)
+    name = metadata['name']
 
-    # Website where more information about the software built from recipe can be found.
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-HOMEPAGE
-    homepage = d.getVar("HOMEPAGE")
-    
-    # The list of source licenses for the recipe.
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-LICENSE
-    licenses = d.getVar("LICENSE")
-    
-    # Summary of the package, which might be used by packaging system (e.g. rpm)
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-SUMMARY
-    summary = d.getVar("SUMMARY")
-    
-    # The description used by package managers. Preferred over `summary`.
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-DESCRIPTION
-    description = d.getVar("DESCRIPTION")
-
-    # The list of packages the recipe creates.
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-PACKAGES
-    packages = (d.getVar("PACKAGES") or "").split()
-    
-    # The list of source files — local or remote.
-    # Ref: https://docs.yoctoproject.org/bitbake/2.2/bitbake-user-manual/bitbake-user-manual-ref-variables.html#term-SRC_URI
-    src_uri = (d.getVar('SRC_URI', True) or "").split()
-
-    # The path of the recipe.
-    # Ref: https://docs.yoctoproject.org/ref-manual/variables.html#term-FILE
-    recipe_path = d.getVar("FILE")
-    recipe_layer = bb.utils.get_file_layer(recipe_path, d) or '.'
-
-    metadata = {
-        'name': name,
-        'version': version,
-        'pkg_version': pkg_version,
-        'packages': packages,
-        'homepage': homepage,
-        'licenses': licenses,
-        'summary': summary,
-        'description': description,
-        'src_uri': src_uri,
-        'recipe': recipe_path,
-        'layer': recipe_layer,
-    }
-
-    metadata_dir = d.getVar('FOSSA_METADATA_RECIPES')
-    bb.utils.mkdirhier(metadata_dir)
-
-    try:
-        metadata_file = os.path.join(metadata_dir, name + '.json')
-        with open(metadata_file, 'w+') as mf:
-            json.dump(metadata, mf, indent=4, sort_keys=True)
-    except Exception as err:
-        bb.error(f'failed to store metadata: {err}')
-    else:
-        bb.debug(1, f'succesfully persisted metadata for: {name}')
+    write_metadata(d, metadata)
 }
-
-ROOTFS_POSTPROCESS_COMMAND += " do_fossa;"
-do_rootfs[recrdeptask] += "do_fossa_pkg"
-do_rootfs[recideptask] += "do_fossa_pkg"
 
 # Combines all the metadata files generated by `do_fossa_pkg` into a single
 # `fossa-deps` file for use during `fossa_upload:do_fossa_analyze`.
@@ -120,8 +91,8 @@ python do_fossa() {
     import json
     import glob
     
-    metadata_dir = d.getVar('FOSSA_METADATA_RECIPES')    
-    pkg_metadata = get_pkg_metadata(d, metadata_dir)
+    metadata_dir = d.getVar('FOSSA_METADATA_RECIPES')
+    pkg_metadata = all_pkg_metadata(d, metadata_dir)
 
     installed_pkgs = []
     for pkg in pkg_metadata:
@@ -139,7 +110,7 @@ python do_fossa() {
     # Make fossa-deps.json from installed pakckages,
     # provided initial deps file (if any), while excluding
     # deps provided in exclusion list.
-    fossa_deps_dict = mk_fossa_deps(d, installed_pkgs)
+    fossa_deps_dict = mk_fossa_deps(d, installed_pkgs, pkg_metadata)
 
     with open(fossa_deps_path, 'w+') as fd:
         json.dump(fossa_deps_dict, fd, indent=4, sort_keys=False)
@@ -152,3 +123,11 @@ python do_fossa() {
 
 # Users only add this class to their build; implicitly add the `fossa_upload` class as well.
 IMAGE_CLASSES_append = " fossa_upload"
+
+ROOTFS_POSTPROCESS_COMMAND += " do_fossa;"
+
+do_rootfs[recrdeptask] += "do_fossa_pkg"
+do_rootfs[recrdeptask] += "do_fossa_archive"
+
+do_rootfs[recideptask] += "do_fossa_pkg"
+do_rootfs[recideptask] += "do_fossa_archive"
