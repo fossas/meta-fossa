@@ -51,6 +51,22 @@ def is_fossa_license_scan_enabled(d):
 
     return False
 
+def is_fossa_debug_enabled(d):
+    """True if FOSSA_DEBUG"""
+
+    if d.getVar("FOSSA_DEBUG") == "1":
+        return True
+
+    return False
+
+def is_fossa_output_enabled(d):
+    """True if FOSSA_OUTPUT"""
+
+    if d.getVar("FOSSA_OUTPUT") == "1":
+        return True
+
+    return False
+
 
 def has_fossa_yml_file(d):
     """True, if FOSSA_CONFIG_FILE exist and is readable."""
@@ -407,7 +423,8 @@ def mk_fossa_cmd(d, subcmd):
             bb.debug(1, "using, raw analyze command provided: {rawcmd_analyze}")
             return rawcmd_analyze
 
-        analyze_cmd = ["analyze", "--debug", "-p", f"{project}", "-r", f"{revision}"]
+        analyze_cmd = ["analyze", "--output", "--debug", "-p", f"{project}", "-r", f"{revision}"]
+
         if has_fossa_yml:
             analyze_cmd.append("-c")
             analyze_cmd.append(fossa_yml)
@@ -415,6 +432,12 @@ def mk_fossa_cmd(d, subcmd):
         if fossa_api_key:
             analyze_cmd.append("--fossa-api-key")
             analyze_cmd.append(fossa_api_key)
+
+        if is_fossa_debug_enabled:
+            analyze_cmd.append('--debug')
+            
+        if is_fossa_output_enabled:
+            analyze_cmd.append('--output')
 
         return analyze_cmd
 

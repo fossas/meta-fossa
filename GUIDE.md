@@ -77,6 +77,8 @@ These options are configured by adding the variable to `build/conf/local.conf`.
 | FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS | Packages to exclude from final analysis ([reference](#exclude-dependencies-from-the-analysis)).                                                   | :x:                | None                                                                                            |
 | FOSSA_RAW_ANALYZE_CMD            | Invoke `fossa-cli` with this argument string during the analysis step ([reference](#specify-custom-project-name-and-project-revision-for-fossa)). | :x:                | `analyze --fossa-api-key <API_KEY> -p ${IMAGE_BASENAME} -r "${MACHINE}${IMAGE_VERSION_SUFFIX}"` |
 | FOSSA_RAW_TEST_CMD               | Invoke `fossa-cli` with this argument string during the test step ([reference](#specify-custom-project-name-and-project-revision-for-fossa)).     | :x:                | `test --fossa-api-key <API_KEY> -p ${IMAGE_BASENAME} -r "${MACHINE}${IMAGE_VERSION_SUFFIX}"`    |
+| FOSSA_DEBUG                      | Run `fossa-cli` in debug mode. Generally only required when troubleshooting.                                                                      | :x:                | `0`                                                                                             |
+| FOSSA_OUTPUT_LOCAL               | Output the findings of `fossa-cli` locally instead of uploading to the FOSSA service.                                                             | :x:                | `0`                                                                                             |
 
 ### Specify custom project name and project revision for FOSSA
 
