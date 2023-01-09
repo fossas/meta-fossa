@@ -38,9 +38,10 @@ bitbake core-image-minimal
 
 `meta-fossa` currently supports the following strategies:
 
-| Strategy      | License            | Description        | Homepage           | Authors | Excludes unused packages | Vulnerability |
-|---------------|--------------------|--------------------|--------------------|---------|--------------------------|---------------|
-| `custom-deps` | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x:     | :white_check_mark:       | :x:           |
+| Strategy         | License            | Description        | Homepage           | Authors | Excludes unused packages | Vulnerability |
+|------------------|--------------------|--------------------|--------------------|---------|--------------------------|---------------|
+| `custom-deps`    | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x:     | :white_check_mark:       | :x:           |
+| `vendored-deps` | :white_check_mark: | :x:                | :x:                | :x:     | :white_check_mark:       | :x:           |
 
 More strategies are currently in active development.
 
