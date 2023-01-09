@@ -52,8 +52,30 @@ In this strategy, the `fossa` class does the following:
 1. Parses each recipe and persists JSON-ified recipe in `tmp/fossa_metadata/recipes/`.
 2. Identifies runtime packages via `oe.rootfs.image_list_installed_packages`.
 3. Correlates runtime packages to recipe and package's metadata using a similar approach as `scripts/oe-pkgdata-util`.
-4. Forms `fossa-deps.json` file for all runtime packages
-5. Performs `fossa analyze` and `fossa test`
+4. Forms `fossa-deps.json` file for all runtime packages.
+5. Performs `fossa analyze` and `fossa test`.
+
+By default, FOSSA classifies this build as the following project and revision:
+
+- Project (in FOSSA): `${IMAGE_BASENAME}`
+- Project Revision (in FOSSA): `${MACHINE}${IMAGE_VERSION_SUFFIX}`
+
+The project name and project revision can be customized by overriding the `fossa analyze` and `fossa test` commands.
+Please refer to [Options](#options) for more details.
+
+### `vendored-deps` strategy
+
+This strategy is activated by setting `FOSSA_LICENSE_SCAN` to `"1"`; for more detail on the difference
+see the [FOSSA license scan](#perform-license-scan) section.
+
+In this strategy, the `fossa` class does the following:
+
+1. Parses each recipe and persists JSON-ified recipe in `tmp/fossa_metadata/recipes/`.
+2. Copies the source code for each recipe to `tmo/fossa_metadata/recipes/`.
+3. Identifies runtime packages via `oe.rootfs.image_list_installed_packages`.
+4. Correlates runtime packages to recipe and package's metadata using a similar approach as `scripts/oe-pkgdata-util`.
+5. Forms `fossa-deps.json` file for all runtime packages.
+6. Performs `fossa analyze` and `fossa test`.
 
 By default, FOSSA classifies this build as the following project and revision:
 
