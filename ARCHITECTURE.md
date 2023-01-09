@@ -3,7 +3,7 @@ Inspired by [this post](https://matklad.github.io/2021/02/06/ARCHITECTURE.md.htm
 This is a hopefully useful guide to how this project works and where its various bits and pieces are.
 Its goal is to get someone new up and running quickly when developing or reviewing this project.
 
-The audience for this document is an engineer who:
+The audience for this document is a person who:
 
 * is interested in how the project currently works
 * is onboarding onto working on this project
