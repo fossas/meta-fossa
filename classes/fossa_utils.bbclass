@@ -193,7 +193,6 @@ def copy_src(d, metadata):
 
     try:
         oe.path.copytree(src_dir, dst_dir)
-        bb.plain(f'copy_src("{src_dir}", "{dst_dir}")')
     except Exception as err:
         bb.error(f'failed to copy source from "{src_dir}" to "{dst_dir}": {err}')
     else:

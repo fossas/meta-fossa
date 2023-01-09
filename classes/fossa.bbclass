@@ -6,6 +6,7 @@ FOSSA_STAGING_DIR ??= "${TMPDIR}/fossa_metadata/staging"
 
 addtask do_fossa_archive after do_packagedata before do_rm_work
 do_fossa_archive[doc] = "Copies patched source code to a destination for license scanning"
+do_fossa_archive[nostamp] = "1"
 do_fossa_archive[rdeptask] += "do_unpack"
 do_fossa_archive[rdeptask] += "do_packagedata"
 do_fossa_archive[rdeptask] += "do_patch"
@@ -40,6 +41,7 @@ python do_fossa_archive() {
 
 addtask do_fossa_pkg after do_packagedata before do_rm_work
 do_fossa_pkg[doc] = "Stores recipe metadata for future analysis"
+do_fossa_pkg[nostamp] = "1"
 do_fossa_pkg[rdeptask] += "do_unpack"
 do_fossa_pkg[rdeptask] += "do_packagedata"
 

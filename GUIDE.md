@@ -201,6 +201,22 @@ Internally, FOSSA treats the source code referenced in the recipe
 as "vendored dependencies"; for more information see the
 [vendored dependencies feature documentation](https://github.com/fossas/fossa-cli/blob/master/docs/features/vendored-dependencies.md).
 
+**Important: Known issue**
+
+When using this option, if FOSSA has issues recursing into a dependency when scanning for licenses,
+that dependency is skipped and no error is raised, causing an incomplete license set to be uploaded
+to the FOSSA backend.
+
+This will not affect all projects, but please check that your project is not affected prior to using this option.
+FOSSA is working on a patch for this issue and will update this repo when that fix is out.
+
+Whether this affects your project can be determined by running a build with `FOSSA_LICENSE_SCAN` unset
+and checking the count of dependencies in FOSSA, then running a build with `FOSSA_LICENSE_SCAN` set.
+The count of dependencies should match, but if it does not then this issue affects your project.
+
+To be notified of that fix, please [contact support](./README.md#support)
+or create an issue on this repository asking to be notified when this issue is resolved.
+
 ## Troubleshoot
 
 If you are running into issues, please confirm the following:
@@ -255,6 +271,13 @@ If you are still running into an issue, please provide stdout of `bitbake <image
 to the FOSSA support team, we can further investigate the issue for you.
 
 ## FAQ
+
+### Why do `meta-fossa` recipes not cache?
+
+`meta-fossa` recipes are set `nostamp`, so they always run.
+
+This is required because in our testing we found that modifying patch sets does not cause
+the recipe to re-run, so we cannot rely on build system caching.
 
 ### Why are vulnerabilities not supported?
 

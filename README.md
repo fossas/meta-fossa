@@ -70,12 +70,18 @@ Summary: There was 1 ERROR message shown, returning a non-zero exit code.
 This test functionality can be disabled if desired; see the [integration guide](./GUIDE.md#perform-only-analysis-disregard-fossa-test)
 for more details.
 
+## FAQ & Troubleshooting
+
+- For FAQ, please refer to the [FAQ here](./GUIDE.md#faq)
+- For troubleshooting, please refer to the [troubleshooting guide here](./GUIDE.md#troubleshoot).
+
 ## Patches
 
 Please submit any patches against the `meta-fossa` layer to this
 repository. Contributions are welcome!
 
 This layer maintainer can be contacted at support@fossa.com, or via github issues.
+**Please only use issues or direct emails for code related questions; for general support please see [support](#support).**
 
 ## Support
 
