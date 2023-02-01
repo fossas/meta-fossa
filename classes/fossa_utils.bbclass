@@ -432,10 +432,10 @@ def mk_fossa_cmd(d, subcmd):
             analyze_cmd.append("--fossa-api-key")
             analyze_cmd.append(fossa_api_key)
 
-        if is_fossa_debug_enabled:
+        if is_fossa_debug_enabled(d):
             analyze_cmd.append('--debug')
 
-        if is_fossa_output_enabled:
+        if is_fossa_output_enabled(d):
             analyze_cmd.append('--output')
 
         return analyze_cmd
