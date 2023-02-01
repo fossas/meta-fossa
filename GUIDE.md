@@ -18,7 +18,15 @@ git clone git://git.yoctoproject.org/poky.git -b dunfell
 git clone https://github.com/fossas/meta-fossa.git
 ```
 
-2. Add `meta-fossa` to `build/conf/local.conf` by appending the following lines:
+2. Add the layer to Bitbake:
+
+```bash
+cd poky
+source oe-init-build-env
+bitbake-layers add-layer ../../meta-fossa/
+```
+
+3. Add `meta-fossa` to `build/conf/local.conf` by appending the following lines:
 
 ```bash
 BBLAYERS += "<PATH-TO-META-FOSSA>"
@@ -26,11 +34,9 @@ INHERIT += "fossa"
 FOSSA_API_KEY = "<VALID-FOSSA-API-KEY>"
 ```
 
-3. Run the build:
+4. Run the build:
 
 ```bash
-cd poky
-source oe-init-build-env
 bitbake core-image-minimal
 ```
 

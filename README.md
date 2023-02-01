@@ -19,6 +19,7 @@ _For more details and configuration options, please refer to our [integration gu
 ; cd poky && source oe-init-build-env
 
 # Add meta-fossa layer
+; bitbake-layers add-layer ../../meta-fossa/
 ; echo 'BBLAYERS += "${TOPDIR}/../../meta-fossa"' >> conf/local.conf
 
 # Inherit the fossa layer
