@@ -321,7 +321,8 @@ def all_pkg_metadata(d, recipe_metadata_dir):
         pkg_dic[pkg_name] = oe.packagedata.read_pkgdatafile(pkg_info)
         if not "LICENSE" in pkg_dic[pkg_name].keys():
             pkg_lic_name = "LICENSE_" + pkg_name
-            pkg_dic[pkg_name]["LICENSE"] = pkg_dic[pkg_name][pkg_lic_name]
+            pkg_lic_alt_name = "LICENSE:" + pkg_name
+            pkg_dic[pkg_name]["LICENSE"] = pkg_dic[pkg_name].get(pkg_lic_name) or pkg_dic[pkg_name].get(pkg_lic_alt_name)
 
         recipe_name = pkg_dic[pkg_name]["PN"]
         pkg_dic[pkg_name]["recipe"] = recipes.get(recipe_name, {})

@@ -122,7 +122,7 @@ python do_fossa() {
 }
 
 # Users only add this class to their build; implicitly add the `fossa_upload` class as well.
-IMAGE_CLASSES_append = " fossa_upload"
+IMAGE_CLASSES:append = " fossa_upload"
 
 ROOTFS_POSTPROCESS_COMMAND += " do_fossa;"
 
