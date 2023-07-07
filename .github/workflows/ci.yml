@@ -8,17 +8,10 @@ jobs:
       matrix:
         # Yocto versions (using branch convention)
         # https://wiki.yoctoproject.org/wiki/Releases
-        branch: [
-          "langdale",
-          "kirkstone",
-          "honister",
-          "hardknott",
-          "gatesgarth",
-          "dunfell",
-        ]
+        branch: ["mickledore", "kirkstone", "honister", "dunfell"]
     env:
       YOCTO_RELEASE: ${{ matrix.branch }}
-    
+
     runs-on: ubuntu-20.04
     steps:
       - name: Install Host dependencies
@@ -29,11 +22,12 @@ jobs:
           xz-utils debianutils iputils-ping python3-git python3-jinja2 \
           libegl1-mesa libsdl1.2-dev pylint3 xterm python3-subunit \
           mesa-common-dev zstd liblz4-tool
-          
+
       - name: Check out meta-fossa
         uses: actions/checkout@v3
-        
+
       - name: Run Yocto check layer script
+        if: github.ref == 'refs/heads/${{ matrix.branch }}'
         run: |
           cd ${RUNNER_TEMP}
           git clone --depth 1 --branch ${YOCTO_RELEASE} https://git.yoctoproject.org/git/poky 
