@@ -9,7 +9,7 @@ _For more details and configuration options, please refer to our [integration gu
 
 ```shell
 # Check out the FOSSA layer.
-; git clone git@github.com:fossas/meta-fossa.git
+; git clone https://github.com/fossas/meta-fossa.git -b dunfell
 
 # Check out Yocto, if it isn't already.
 ; git clone git://git.yoctoproject.org/poky.git -b dunfell
