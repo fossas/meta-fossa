@@ -9,10 +9,10 @@ _For more details and configuration options, please refer to our [integration gu
 
 ```shell
 # Check out the FOSSA layer.
-; git clone git@github.com:fossas/meta-fossa.git
+; git clone https://github.com/fossas/meta-fossa.git -b kirkstone
 
 # Check out Yocto, if it isn't already.
-; git clone git://git.yoctoproject.org/poky.git -b dunfell
+; git clone git://git.yoctoproject.org/poky.git -b kirkstone
 
 # Activate yocto build environment
 # This quickstart assumes the build env then moves CWD to `./build`.
@@ -37,7 +37,7 @@ The build logs report the URL at which the FOSSA project can be viewed:
 ```shell
 [ INFO] Using project name: `core-image-minimal`
 [ INFO] Using revision: `qemux86-64-20230103233003`
-[ INFO] Using branch: `dunfell`
+[ INFO] Using branch: `kirkstone`
 [ INFO] ============================================================
 [ INFO]
 [ INFO]     View FOSSA Report:
