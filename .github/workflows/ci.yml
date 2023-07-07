@@ -8,7 +8,7 @@ jobs:
       matrix:
         # Yocto versions (using branch convention)
         # https://wiki.yoctoproject.org/wiki/Releases
-        branch: ["mickledore", "kirkstone", "honister", "dunfell"]
+        branch: ["dunfell"]
     env:
       YOCTO_RELEASE: ${{ matrix.branch }}
 
@@ -27,7 +27,6 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Yocto check layer script
-        if: github.ref == 'refs/heads/${{ matrix.branch }}'
         run: |
           cd ${RUNNER_TEMP}
           git clone --depth 1 --branch ${YOCTO_RELEASE} https://git.yoctoproject.org/git/poky 
