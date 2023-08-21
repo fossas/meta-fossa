@@ -7,9 +7,16 @@
 
 _For more details and configuration options, please refer to our [integration guide](./GUIDE.md)!_
 
+| Yocto Version | meta-fossa branch                                                  |
+| ------------- | ------------------------------------------------------------------ |
+| `dunfell`     | [`dunfell`](https://github.com/fossas/meta-fossa/tree/honister)    |
+| `honister`    | [honister](https://github.com/fossas/meta-fossa/tree/honister)     |
+| `kirkstone`   | [kirkstone](https://github.com/fossas/meta-fossa/tree/kirkstone)   |
+| `mickledore`  | [mickledore](https://github.com/fossas/meta-fossa/tree/mickledore) |
+
 ```shell
 # Check out the FOSSA layer.
-; git clone git@github.com:fossas/meta-fossa.git
+; git clone https://github.com/fossas/meta-fossa.git -b dunfell
 
 # Check out Yocto, if it isn't already.
 ; git clone git://git.yoctoproject.org/poky.git -b dunfell
