@@ -9,7 +9,7 @@ _For more details and configuration options, please refer to our [integration gu
 
 | Yocto Version | meta-fossa branch                                                  |
 | ------------- | ------------------------------------------------------------------ |
-| `dunfell`     | [`dunfell`](https://github.com/fossas/meta-fossa/tree/honister)    |
+| `dunfell`     | [dunfell](https://github.com/fossas/meta-fossa/tree/dunfell)       |
 | `honister`    | [honister](https://github.com/fossas/meta-fossa/tree/honister)     |
 | `kirkstone`   | [kirkstone](https://github.com/fossas/meta-fossa/tree/kirkstone)   |
 | `mickledore`  | [mickledore](https://github.com/fossas/meta-fossa/tree/mickledore) |
