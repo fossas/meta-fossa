@@ -102,7 +102,7 @@ python do_fossa() {
         try:
             installed_pkgs.append(mk_user_dependencies(pkg_metadata[pkg]))
         except Exception:
-            pass
+            bb.debug(f'failed to retrieve pkg metadata for {pkg} because: {err}')
 
     # Ensure path exists
     fossa_deps_dir = d.getVar("FOSSA_STAGING_DIR")
