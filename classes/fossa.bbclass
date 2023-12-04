@@ -82,6 +82,8 @@ python do_fossa_pkg() {
 # this way it is able to capture the output of `do_fossa_pkg` for every
 # package that was processed.
 python do_fossa() {
+    from oe.rootfs import image_list_installed_packages
+
     if not is_fossa_enabled(d):
         bb.debug(1, "Since FOSSA_ENABLED is 0, skipping: creating fossa-deps.json")
         return 
@@ -93,13 +95,14 @@ python do_fossa() {
     
     metadata_dir = d.getVar('FOSSA_METADATA_RECIPES')
     pkg_metadata = all_pkg_metadata(d, metadata_dir)
+    pkgs = image_list_installed_packages(d)
 
     installed_pkgs = []
-    for pkg in pkg_metadata:
+    for pkg in pkgs:
         try:
             installed_pkgs.append(mk_user_dependencies(pkg_metadata[pkg]))
-        except Exception as err:
-            bb.error(f'failed to retrieve pkg metadata for {pkg} because: {err}')
+        except Exception:
+            bb.debug(f'failed to retrieve pkg metadata for {pkg} because: {err}')
 
     # Ensure path exists
     fossa_deps_dir = d.getVar("FOSSA_STAGING_DIR")
