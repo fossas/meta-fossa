@@ -10,9 +10,15 @@ _For more details and configuration options, please refer to our [integration gu
 | Yocto Version | meta-fossa branch                                                  |
 | ------------- | ------------------------------------------------------------------ |
 | `dunfell`     | [dunfell](https://github.com/fossas/meta-fossa/tree/dunfell)       |
+| `gatesgarth`  | [honister](https://github.com/fossas/meta-fossa/tree/gatesgarth)   |
+| `hardknott`  | [mickledore](https://github.com/fossas/meta-fossa/tree/hardknott) |
 | `honister`    | [honister](https://github.com/fossas/meta-fossa/tree/honister)     |
 | `kirkstone`   | [kirkstone](https://github.com/fossas/meta-fossa/tree/kirkstone)   |
+| `langdale`  | [mickledore](https://github.com/fossas/meta-fossa/tree/langdale) |
 | `mickledore`  | [mickledore](https://github.com/fossas/meta-fossa/tree/mickledore) |
+
+
+
 
 ```shell
 # Check out the FOSSA layer.
