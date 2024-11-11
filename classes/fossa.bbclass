@@ -95,10 +95,15 @@ python do_fossa() {
     
     metadata_dir = d.getVar('FOSSA_METADATA_RECIPES')
     pkg_metadata = all_pkg_metadata(d, metadata_dir)
-    pkgs = image_list_installed_packages(d)
+    pkg_metadata = all_pkg_metadata(d, metadata_dir)
 
     installed_pkgs = []
-    for pkg in pkgs:
+    for pkg in pkg_metadata:
+
+        for ignored_suffix in (d.getVar("SPECIAL_PKGSUFFIX") or "").split():
+            if pkg.endswith(ignored_suffix):
+                pass
+
         try:
             installed_pkgs.append(mk_user_dependencies(pkg_metadata[pkg]))
         except Exception:
