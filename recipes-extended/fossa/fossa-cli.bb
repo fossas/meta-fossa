@@ -38,3 +38,5 @@ do_install() {
 }
 
 INSANE_SKIP_${PN}:append = "already-stripped"
+
+BBCLASSEXTEND = "native"

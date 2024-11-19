@@ -14,7 +14,7 @@ do_fossa_archive[rdeptask] += "do_patch"
 # This task runs after the `do_patch` task.
 #
 # The `do_patch` task is executed for each package in the build; in this way
-# `do_fossa_archive` is able to save the package information and source code 
+# `do_fossa_archive` is able to save the package information and source code
 # for every package that goes into the build.
 #
 # The temporary files containing this metadata are then combined into a
@@ -84,22 +84,27 @@ python do_fossa_pkg() {
 python do_fossa() {
     if not is_fossa_enabled(d):
         bb.debug(1, "Since FOSSA_ENABLED is 0, skipping: creating fossa-deps.json")
-        return 
+        return
 
     import errno
     import os
     import json
     import glob
-    
+
     metadata_dir = d.getVar('FOSSA_METADATA_RECIPES')
     pkg_metadata = all_pkg_metadata(d, metadata_dir)
 
     installed_pkgs = []
     for pkg in pkg_metadata:
+
+        for ignored_suffix in (d.getVar("SPECIAL_PKGSUFFIX") or "").split():
+            if pkg.endswith(ignored_suffix):
+                pass
+
         try:
             installed_pkgs.append(mk_user_dependencies(pkg_metadata[pkg]))
-        except Exception as err:
-            bb.error(f'failed to retrieve pkg metadata for {pkg} because: {err}')
+        except Exception:
+            pass
 
     # Ensure path exists
     fossa_deps_dir = d.getVar("FOSSA_STAGING_DIR")
@@ -114,10 +119,10 @@ python do_fossa() {
 
     with open(fossa_deps_path, 'w+') as fd:
         json.dump(fossa_deps_dict, fd, indent=4, sort_keys=False)
-    
+
     with open(fossa_deps_raw, 'w+') as fr:
         json.dump(pkg_metadata, fr, indent=4, sort_keys=False)
-    
+
     bb.debug(1, "Wrote fossa-deps at: {fossa_deps_path}")
 }
 
