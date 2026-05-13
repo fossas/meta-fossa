@@ -13,6 +13,7 @@ def report_fossa_vars(d):
         "FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS",
         "FOSSA_RAW_ANALYZE_CMD",
         "FOSSA_RAW_TEST_CMD",
+        "FOSSA_VENDORED_SCAN_METHOD",
         "FOSSA_METADATA_RECIPES",
         "FOSSA_METADATA_PATCHED_SRC",
         "FOSSA_STAGING_DIR",
@@ -437,6 +438,13 @@ def mk_fossa_cmd(d, subcmd):
 
         if is_fossa_output_enabled(d):
             analyze_cmd.append('--output')
+
+        vendored_scan_method = d.getVar("FOSSA_VENDORED_SCAN_METHOD")
+        if vendored_scan_method:
+            if vendored_scan_method not in ["CLILicenseScan", "ArchiveUpload"]:
+                bb.fatal(f"FOSSA_VENDORED_SCAN_METHOD must be 'CLILicenseScan' or 'ArchiveUpload', got: {vendored_scan_method}")
+            analyze_cmd.append("--force-vendored-dependency-scan-method")
+            analyze_cmd.append(vendored_scan_method)
 
         return analyze_cmd
 
