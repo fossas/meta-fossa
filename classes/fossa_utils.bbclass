@@ -87,27 +87,95 @@ def has_fossa_yml_file(d):
     return (False, None)
 
 
+def find_primary_remote_url(src_uri):
+    """Returns the first non-local URI from a SRC_URI list, or None (with options intact)."""
+    for uri in src_uri:
+        if not uri.startswith('file://'):
+            return uri
+    return None
+
+
+def is_git_uri(uri):
+    """True if the URI uses a git or gitsm fetcher."""
+    return uri.startswith(('git://', 'gitsm://'))
+
+
+def git_uri_to_https(uri):
+    """Convert a BitBake git:// or gitsm:// URI to an HTTPS URL.
+
+    git://github.com/user/repo.git;protocol=https;branch=main
+    → https://github.com/user/repo.git
+    """
+    parts = uri.split(';')
+    raw_url = parts[0]
+    options = dict(opt.split('=', 1) for opt in parts[1:] if '=' in opt)
+    protocol = options.get('protocol', 'git')
+
+    if raw_url.startswith('gitsm://'):
+        host_path = raw_url[len('gitsm://'):]
+    else:
+        host_path = raw_url[len('git://'):]
+
+    return f"{protocol}://{host_path}"
+
+
+def extract_git_version(full_version):
+    """Extract a usable git ref from a Yocto PKGV+PKGR string.
+
+    '2.39+git0+ce65d944e3-r0' → 'ce65d944e3'  (commit hash from git-sourced PV)
+    '1.9.10-r0'               → '1.9.10'       (plain version, assumed to match a tag)
+    """
+    import re
+    version = re.sub(r'-r\d+$', '', full_version)  # strip release suffix e.g. -r0
+    if '+git' in version:
+        parts = version.split('+')
+        for i, part in enumerate(parts):
+            if part.startswith('git') and i + 1 < len(parts):
+                return parts[i + 1]
+    return version
+
+
+def mk_referenced_git_dependency(dep, url):
+    """Creates a referenced-dependency entry for a git repository."""
+    return {
+        'type': 'git',
+        'name': url,
+        'version': extract_git_version(dep['version']),
+    }
+
+
+def mk_remote_dependency(dep, url, recipe):
+    """Creates a remote-dependency entry for fossa-deps.json."""
+    remote_dep = {
+        'name': dep['name'],
+        'version': dep['version'],
+        'url': url.split(';')[0],  # strip BitBake fetcher options
+    }
+
+    metadata = {}
+    if recipe.get('description'):
+        metadata['description'] = recipe['description']
+    if recipe.get('homepage'):
+        metadata['homepage'] = recipe['homepage']
+
+    if metadata:
+        remote_dep['metadata'] = metadata
+
+    return remote_dep
+
+
 def mk_fossa_deps(d, deps, pkg_metadata):
     """FOSSA Deps file dictionary from dependencies, and user supplied data.
 
     1. It reads FOSSA_INIT_DEPS_JSON if provided.
-    2. It filters any deps with a name matching matching one provided in FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS
-    3. It merges FOSSA_INIT_DEPS_JSON with custom-dependencies from deps.
+    2. It filters any deps with a name matching one provided in FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS.
+    3. It classifies each dependency and merges into FOSSA_INIT_DEPS_JSON.
 
-    >> mk_fossa_deps(d, [{"name": "bat", "version": "0.0.1", "license": "MIT"}])
-
-    {
-        "custom-dependencies": [
-            {
-                "name": "bat",
-                "version": "0.0.1",
-                "license": "MIT"
-            }
-        ]
-    }
-
-    If the current run is using FOSSA license scanning,
-    vendored dependencies are created instead of custom dependencies.
+    Classification priority:
+    - remote-dependency: package has at least one non-local (non file://) SRC_URI entry.
+    - vendored-dependency: all SRC_URI entries are local (file://) and FOSSA_LICENSE_SCAN=1
+      with source captured in FOSSA_METADATA_PATCHED_SRC.
+    - custom-dependency: fallback when neither of the above applies.
     """
 
     import os
@@ -132,36 +200,56 @@ def mk_fossa_deps(d, deps, pkg_metadata):
             bb.debug(1, f"indentified {len(excluded)} packages to exclude!")
         excluded_pkgs = {e.lower() for e in excluded}
 
-    # Having empty arrays doesn't hurt, just add both to make it simpler.
+    # Initialize all dependency-type arrays (empty arrays are harmless).
     if "custom-dependencies" not in fossa_deps:
         fossa_deps["custom-dependencies"] = []
+    if "referenced-dependencies" not in fossa_deps:
+        fossa_deps["referenced-dependencies"] = []
+    if "remote-dependencies" not in fossa_deps:
+        fossa_deps["remote-dependencies"] = []
     if "vendored-dependencies" not in fossa_deps:
         fossa_deps["vendored-dependencies"] = []
 
-    # Add dependencies that are not in excluded list.
     patched_src_dir = d.getVar('FOSSA_METADATA_PATCHED_SRC')
     for dep in deps:
         name = dep['name']
 
         if name.lower() in excluded_pkgs:
-            bb.debug(1,f"skipping {dep['name']}, because this dep is to excluded (per FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS)")
+            bb.debug(1, f"skipping {dep['name']}, because this dep is excluded (per FOSSA_EXCLUDE_PKGS_FROM_ANALYSIS)")
             continue
 
-        if is_fossa_license_scan_enabled(d):
-            # Some packages are built from a recipe with a different name, and source code is stored by recipe.
-            # Use the package metadata to look up the original recipe name,
-            # so that the source code directory can be determined.
-            src_dir = ''
-            for pkg in pkg_metadata:
-                meta = pkg_metadata[pkg]
-                meta_name = meta['PKG_RAW_NAME']
-                if meta_name == name:
-                    recipe = meta['recipe']
-                    recipe_name = recipe['name']
-                    src_dir = source_output_path(patched_src_dir, recipe_name)
-                    break
+        # Look up the recipe that produced this package.
+        # Some packages are built from a recipe with a different name (e.g. libkmod2 from kmod).
+        recipe = {}
+        recipe_name = name
+        for pkg in pkg_metadata:
+            meta = pkg_metadata[pkg]
+            if meta['PKG_RAW_NAME'] == name:
+                recipe = meta.get('recipe', {})
+                recipe_name = recipe.get('name', name)
+                break
 
-            # As a failsafe, only generate a vendored-dependency if the source dir actually exists.
+        # Classify by primary source URI.
+        src_uri = recipe.get('src_uri', [])
+        primary_uri = find_primary_remote_url(src_uri)
+
+        if primary_uri and is_git_uri(primary_uri):
+            # Git-sourced packages → referenced-dependency (type: git)
+            https_url = git_uri_to_https(primary_uri)
+            ref_dep = mk_referenced_git_dependency(dep, https_url)
+            fossa_deps["referenced-dependencies"].append(ref_dep)
+            continue
+
+        if primary_uri:
+            # HTTP/HTTPS tarball or other remote → remote-dependency
+            remote_dep = mk_remote_dependency(dep, primary_uri, recipe)
+            fossa_deps["remote-dependencies"].append(remote_dep)
+            continue
+
+        # Fall back to vendored-dependency for packages whose source is entirely local.
+        # This requires FOSSA_LICENSE_SCAN=1 so that do_fossa_archive has captured the source.
+        if is_fossa_license_scan_enabled(d):
+            src_dir = source_output_path(patched_src_dir, recipe_name)
             if src_dir and os.path.exists(src_dir):
                 vendored_dep = mk_vendored_dependency(dep, src_dir)
                 fossa_deps["vendored-dependencies"].append(vendored_dep)
@@ -170,8 +258,8 @@ def mk_fossa_deps(d, deps, pkg_metadata):
                 bb.warn(f"""source for package "{name}" not captured, falling back to build-provided metadata.
                 This may be a bug with the "meta-fossa" layer, please refer to our troubleshooting guide at
                 https://github.com/fossas/meta-fossa/blob/master/GUIDE.md#troubleshoot""")
-        
-        # As a default fallback, use build-provided metadata.
+
+        # Last resort: custom-dependency with build-provided metadata.
         fossa_deps["custom-dependencies"].append(dep)
 
     return fossa_deps
