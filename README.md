@@ -13,6 +13,7 @@ _For more details and configuration options, please refer to our [integration gu
 | `honister`    | [honister](https://github.com/fossas/meta-fossa/tree/honister)     |
 | `kirkstone`   | [kirkstone](https://github.com/fossas/meta-fossa/tree/kirkstone)   |
 | `mickledore`  | [mickledore](https://github.com/fossas/meta-fossa/tree/mickledore) |
+| `scarthgap`   | [scarthgap](https://github.com/fossas/meta-fossa/tree/scarthgap)   |
 
 ```shell
 # Check out the FOSSA layer.
