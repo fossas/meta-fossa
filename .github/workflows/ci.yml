@@ -12,7 +12,7 @@ jobs:
     env:
       YOCTO_RELEASE: ${{ matrix.branch }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Install Host dependencies
         run: |
