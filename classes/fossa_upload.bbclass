@@ -49,6 +49,7 @@ python do_fossa_test() {
 
 def run_fossa_cli(d, cli_args):
     import os
+    import re
     import subprocess
 
     BINDIR = d.getVar("bindir")
@@ -56,9 +57,24 @@ def run_fossa_cli(d, cli_args):
 
     cli_path = (f"{WORKDIR}/recipe-sysroot{BINDIR}/fossa")
     cmds = [cli_path] + cli_args
-    bb.plain(f"running: {' '.join(cmds)}")
 
-    out = subprocess.run(cmds, cwd=d.getVar("FOSSA_STAGING_DIR"), capture_output=True, text=True, shell=False)
+    # FOSSA_API_KEY is passed via the subprocess environment, not as a CLI
+    # argument, so it doesn't show up in `ps aux` output (fossa-cli reads it
+    # from the environment by default when --fossa-api-key isn't given).
+    env = dict(os.environ)
+    fossa_api_key = d.getVar("FOSSA_API_KEY")
+    if fossa_api_key:
+        env["FOSSA_API_KEY"] = fossa_api_key
+
+    # Belt-and-suspenders: also mask an inline --fossa-api-key from the
+    # logged command line, in case FOSSA_RAW_ANALYZE_CMD/FOSSA_RAW_TEST_CMD
+    # (which still document requiring the key inline) is in use.
+    logged_cmd = re.sub(
+        r"(--fossa-api-key)\s+\S+", r"\1 [REDACTED]", " ".join(cmds)
+    )
+    bb.plain(f"running: {logged_cmd}")
+
+    out = subprocess.run(cmds, cwd=d.getVar("FOSSA_STAGING_DIR"), env=env, capture_output=True, text=True, shell=False)
     if out.returncode != 0:
         bb.fatal(out.stderr)
     else:
