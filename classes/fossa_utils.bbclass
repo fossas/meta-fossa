@@ -408,7 +408,9 @@ def mk_fossa_cmd(d, subcmd):
     # yocto specific project/revision instead of git
     project = d.getVar("IMAGE_BASENAME")
     revision = d.getVar("MACHINE") + d.getVar("IMAGE_VERSION_SUFFIX")
-    fossa_api_key = d.getVar("FOSSA_API_KEY")
+    # Note: FOSSA_API_KEY is intentionally not read here — it's passed to
+    # fossa-cli via the subprocess environment in run_fossa_cli(), not as a
+    # CLI argument. See the comments below.
 
     # config file
     has_fossa_yml, fossa_yml = has_fossa_yml_file(d)
@@ -428,9 +430,12 @@ def mk_fossa_cmd(d, subcmd):
             analyze_cmd.append("-c")
             analyze_cmd.append(fossa_yml)
 
-        if fossa_api_key:
-            analyze_cmd.append("--fossa-api-key")
-            analyze_cmd.append(fossa_api_key)
+        # Deliberately NOT passing --fossa-api-key here: fossa-cli already
+        # reads FOSSA_API_KEY from the environment by default (see
+        # `fossa analyze --help`), and run_fossa_cli() sets that env var for
+        # the subprocess. Putting a secret on argv means it shows up in
+        # `ps aux` output and in bitbake's own command-echo logging
+        # (see run_fossa_cli's `bb.plain(f"running: ...")`).
 
         if is_fossa_debug_enabled(d):
             analyze_cmd.append('--debug')
@@ -450,8 +455,8 @@ def mk_fossa_cmd(d, subcmd):
             test_cmd.append("-c")
             test_cmd.append(fossa_yml)
 
-        if fossa_api_key:
-            test_cmd.append("--fossa-api-key")
-            test_cmd.append(fossa_api_key)
+        # See the comment in the `analyze` branch above: FOSSA_API_KEY is
+        # passed via the subprocess environment in run_fossa_cli() instead
+        # of as a CLI argument, to avoid it appearing in logs/process lists.
 
         return test_cmd
