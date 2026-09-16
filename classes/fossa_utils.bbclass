@@ -351,6 +351,28 @@ def mk_vendored_dependency(user_dependency, src_dir):
     vendored_dependency['path'] = src_dir
     return vendored_dependency
 
+def normalize_fossa_license_id(license_expr):
+    """
+    Rewrites Yocto license shorthand that FOSSA does not recognize as a
+    valid license id into an id it does recognize, so real license data
+    survives the upload instead of silently becoming an
+    unlicensed_dependency issue.
+
+    Yocto uses "PD" for Public Domain in the LICENSE variable (see
+    https://docs.yoctoproject.org/ref-manual/variables.html#term-LICENSE).
+    "PD" is not a valid SPDX id and is not in FOSSA's license catalog
+    either (GET /api/licenses/PD 404s) -- FOSSA treats it as no license
+    at all rather than as an unrecognized custom license string. FOSSA
+    does recognize "Public-Domain" (GET /api/licenses/Public-Domain
+    200s), so translate to that instead.
+    """
+    if not license_expr:
+        return license_expr
+
+    import re
+    return re.sub(r"\bPD\b", "Public-Domain", license_expr)
+
+
 def mk_user_dependencies(pkg_dict):
     """Creates custom-dependencies.
 
@@ -369,7 +391,8 @@ def mk_user_dependencies(pkg_dict):
         return pkg_dict["PKGV"] or pkg_dict["PV"]
 
     def license():
-        return pkg_dict["LICENSE"] or pkg_dict.get("recipe", {}).get("licenses", "")
+        lic = pkg_dict["LICENSE"] or pkg_dict.get("recipe", {}).get("licenses", "")
+        return normalize_fossa_license_id(lic)
 
     user_dependency = dict()
     user_dependency["name"] = name()
