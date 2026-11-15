@@ -12,7 +12,8 @@ jobs:
     env:
       YOCTO_RELEASE: ${{ matrix.branch }}
 
-    runs-on: ubuntu-latest
+    # Pinned: setup-python has no Python 3.8 build for ubuntu-latest (Ubuntu 26.04).
+    runs-on: ubuntu-24.04
     steps:
       - name: Install Host dependencies
         run: |
